@@ -1,35 +1,30 @@
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    user_id VARCHAR(255) PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    team_name VARCHAR(255) NOT NULL REFERENCES team(team_name) ON DELETE CASCADE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 CREATE TABLE team (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-)
-
-CREATE TABLE user_teams (
-    user_id INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
-    team_id INTEGER NOT NULL REFERENCES team(id) ON DELETE CASCADE, 
-    PRIMARY KEY (user_id, team_id)
-)
+    team_name VARCHAR(255) PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 CREATE TABLE pull_request (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    authot_id INTEGER NOT NULL REFERENCES user(id) ON DELETE RESTRICT,
+    pull_request_id VARCHAR(255) PRIMARY KEY,
+    pull_request_name VARCHAR(255) NOT NULL,
+    author_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT,
 
-    status VARCHAR(10) NOT NULL DEFAULT 'OPEN',
-    CHECK (status IN ('OPEN', 'MERGED')),
+    status VARCHAR(10) NOT NULL DEFAULT 'OPEN'
+        CHECK (status IN ('OPEN','MERGED')),
 
-    reviewer1_id INTEGER REFERENCES user(id) ON DELETE SET NULL,
-    reviewer2_id INTEGER REFERENCES user(id) ON DELETE SET NULL,
+    reviewer1_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL,
+    reviewer2_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL,
 
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    
-    CHECK (authot_id != reviewer1_id)
-    CHECK (authot_id != reviewer2_id)
-)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    merged_at TIMESTAMPTZ,
+
+    CHECK (author_id IS DISTINCT FROM reviewer1_id),
+    CHECK (author_id IS DISTINCT FROM reviewer2_id)
+);
