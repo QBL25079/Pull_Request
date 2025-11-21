@@ -52,7 +52,7 @@ func main() {
 		return c.String(http.StatusOK, "Welcome to PR Reviewer Service API.")
 	})
 
-	log.Printf("Сервер запускается на порту %s...", cfg.HTTPPort)
+	log.Printf(" %s...", cfg.HTTPPort)
 	e.Logger.Fatal(e.Start(":" + cfg.HTTPPort))
 }
 

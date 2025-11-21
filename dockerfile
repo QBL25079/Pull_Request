@@ -1,5 +1,7 @@
+
 FROM golang:1.21-alpine AS builder
 
+RUN apk add --no-cache git bash postgresql-client
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -7,16 +9,17 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags "-s -w" -o /pr-reviewer-service cmd/server/main.go
-
+RUN CGO_ENABLED=0 GOOS=linux go build -o /pr_reviewer_app ./cmd/server/main.go
 
 FROM alpine:latest
-RUN apk --no-cache add tzdata
 
-COPY --from=builder /pr-reviewer-service /pr-reviewer-service
+RUN apk add --no-cache postgresql-client bash
 
-WORKDIR /
+WORKDIR /app
 
-EXPOSE 8080
+COPY --from=builder /pr_reviewer_app /pr_reviewer_app
+COPY --from=builder /app/wait-for-it.sh /wait-for-it.sh
 
-ENTRYPOINT ["/pr-reviewer-service"]
+COPY migrations migrations
+
+RUN chmod +x /wait-for-it.sh /pr_reviewer_app
