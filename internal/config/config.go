@@ -7,7 +7,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config содержит все настройки, необходимые для работы приложения.
 type Config struct {
 	DBHost   string
 	DBPort   string

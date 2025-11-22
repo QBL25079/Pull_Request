@@ -4,12 +4,21 @@ import (
 	"time"
 )
 
+const (
+	PRStatusOpen     PRStatus = "OPEN"
+	PRStatusInReview PRStatus = "IN_REVIEW"
+	PRStatusApproved PRStatus = "APPROVED"
+	PRStatusRejected PRStatus = "REJECTED"
+	PRStatusMerged   PRStatus = "MERGED"
+	PRStatusClosed   PRStatus = "CLOSED"
+)
+
 type TeamMember struct {
 	TeamName  string       `json:"team_name" db:"team_name"`
 	Members   []TeamMember `json:"members"`
 	CreatedAt time.Time    `json:"createdAt" db:"created_at"`
 }
-
+type PRStatus string
 type User struct {
 	UserID    string    `json:"user_id" db:"user_id"`
 	Username  string    `json:"username" db:"username"`
@@ -29,7 +38,7 @@ type PullRequest struct {
 	PullRequestName string `json:"pull_request_name" db:"pull_request_name"`
 	AuthorID        string `json:"author_id" db:"author_id"`
 
-	Status            string   `json:"status" db:"status"`
+	Status            PRStatus `json:"status" db:"status"`
 	AssignedReviewers []string `json:"assigned_reviewers"`
 
 	Reviewer1ID *string `json:"-" db:"reviewer1_id"`
