@@ -16,6 +16,9 @@ type Repository interface {
 	ListUsers(ctx context.Context, teamName string) ([]domain.User, error)
 	GetPullRequestByID(ctx context.Context, prID string) (*domain.PullRequest, error)
 	CreatePullRequest(ctx context.Context, pr domain.PullRequest) error
+
+	CreateTeam(ctx context.Context, team domain.Team) error
+	ListTeams(ctx context.Context) ([]domain.Team, error)
 }
 
 type repository struct {
@@ -181,4 +184,29 @@ func (r *repository) CreatePullRequest(ctx context.Context, pr domain.PullReques
 		return fmt.Errorf("failed to create pull request: %w", err)
 	}
 	return nil
+}
+func (r *repository) CreateTeam(ctx context.Context, team domain.Team) error {
+	_, err := r.db.ExecContext(ctx, `INSERT INTO teams (name) VALUES ($1)`, team.TeamName)
+	if err != nil {
+		return fmt.Errorf("failed to create team: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) ListTeams(ctx context.Context) ([]domain.Team, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT name FROM teams`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list teams: %w", err)
+	}
+	defer rows.Close()
+
+	var teams []domain.Team
+	for rows.Next() {
+		var t domain.Team
+		if err := rows.Scan(&t.TeamName); err != nil {
+			return nil, err
+		}
+		teams = append(teams, t)
+	}
+	return teams, nil
 }

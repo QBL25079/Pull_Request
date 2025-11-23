@@ -1,0 +1,7 @@
+FROM migrate/migrate:latest
+
+WORKDIR /migrations
+
+COPY ./migrations /migrations
+
+ENTRYPOINT ["migrate", "-path", "/migrations", "-database", "postgres://user:password@db:5432/pr_reviewer?sslmode=disable", "up"]

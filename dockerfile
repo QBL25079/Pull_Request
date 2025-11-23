@@ -1,31 +1,27 @@
-FROM golang:1.24-alpine AS builder
-
-RUN apk add --no-cache git
+# --- Сборка Go-приложения ---
+FROM golang:1.24.4-alpine AS builder
+RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /app
-
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o /app/pr-reviewer-service ./cmd/server
+# Сборка бинарника из пакета с main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pr_reviewer_app ./cmd/server
 
-FROM alpine:latest
+# --- Runtime образ ---
+FROM alpine:3.18
+RUN apk add --no-cache ca-certificates tzdata bash
 
-RUN apk --no-cache add ca-certificates tzdata
+WORKDIR /app
 
-COPY --from=builder /app/pr-reviewer-service /usr/local/bin/
+# Копируем бинарник приложения
+COPY --from=builder /app/pr_reviewer_app .
 
-COPY wait_for_db.sh /usr/local/bin/
+# Переменная среды для базы
+ENV DATABASE_URL=postgres://user:password@db:5432/pr_reviewer?sslmode=disable
 
-COPY migrations /app/migrations
-
-ENV DB_SOURCE postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
-
-RUN apk add --no-cache curl && \
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
-    mv migrate /usr/local/bin/migrate
-
-ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["/usr/local/bin/wait_for_db.sh && migrate -path /app/migrations -database $DB_SOURCE up && pr-reviewer-service"]
+# CMD: просто запускаем приложение
+CMD ["./pr_reviewer_app"]

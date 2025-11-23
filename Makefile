@@ -1,5 +1,5 @@
 # Makefile
-APP_NAME=pr-reviewer-service
+APP_NAME=pr-rewiewer-service
 
 build:
 	@echo "Building Go application..."
@@ -16,7 +16,6 @@ down:
 
 migrate-up:
 	@echo "Applying database migrations..."
-	# Здесь должна быть команда для запуска инструмента миграций (например, 'migrate')
 
 clean:
 	@echo "Cleaning up local build artifacts..."
